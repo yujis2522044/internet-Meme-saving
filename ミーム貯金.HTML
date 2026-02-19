@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ネットミーム貯金 - 対戦モード</title>
+    <style>
+        body { background: #121212; color: white; font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; padding: 10px; }
+        .container { display: flex; flex-direction: column; gap: 20px; max-width: 600px; margin: auto; }
+        .user-card { background: #1e1e1e; padding: 20px; border-radius: 20px; border: 1px solid #333; position: relative; }
+        .user-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; color: #bbb; }
+        .savings { font-size: 3.5rem; font-weight: bold; margin: 10px 0; transition: 0.3s; }
+        
+        /* 特殊色ルール */
+        .rainbow { background: linear-gradient(to right, #ff2400, #e81d1d, #e8b21d, #b3e81d, #1de840, #1de8b2, #291de8, #dd1de8, #ff2400); background-size: 200% auto; -webkit-background-clip: text; color: transparent; animation: gradient 3s linear infinite; }
+        .gold { color: #ffd700; text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffd700; font-style: italic; }
+        @keyframes gradient { to { background-position: 200% center; } }
+
+        .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
+        .btn { flex: 1; padding: 12px; font-size: 1rem; cursor: pointer; border-radius: 12px; border: none; font-weight: bold; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); }
+        .plus { background: #e63946; color: white; }
+        .minus { background: #457b9d; color: white; }
+        
+        input { background: #2a2a2a; border: 1px solid #444; color: white; padding: 10px; border-radius: 8px; width: 90%; margin-bottom: 10px; }
+        .history { text-align: left; background: #000; padding: 10px; border-radius: 10px; font-size: 0.8rem; height: 100px; overflow-y: auto; color: #888; }
+        .countdown { background: #333; padding: 10px; border-radius: 50px; margin-bottom: 20px; font-weight: bold; }
+        .status-msg { font-size: 0.9rem; color: #666; margin-bottom: 10px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <div class="countdown">🌻 夏休みまで あと <span id="days">--</span> 日</div>
+
+        <div class="user-card">
+            <div class="user-name">悠自</div>
+            <div id="amount-yuji" class="savings">¥0</div>
+            <input type="text" id="memo-yuji" placeholder="悠自のミームをメモ...">
+            <div class="btn-group">
+                <button class="btn plus" onclick="addMoney('yuji', 100)">ミーム (+100)</button>
+                <button class="btn minus" onclick="addMoney('yuji', -50)">免除 (-50)</button>
+            </div>
+            <div class="history" id="history-yuji">ゆーじの履歴</div>
+        </div>
+
+        <div class="user-card">
+            <div class="user-name">りんな</div>
+            <div id="amount-rinna" class="savings">¥0</div>
+            <input type="text" id="memo-rinna" placeholder="りんなのミームをメモ...">
+            <div class="btn-group">
+                <button class="btn plus" onclick="addMoney('rinna', 100)">ミーム (+100)</button>
+                <button class="btn minus" onclick="addMoney('rinna', -50)">免除 (-50)</button>
+            </div>
+            <div class="history" id="history-rinna">りんなの履歴</div>
+        </div>
+        
+        <div class="status-msg">※ステメ：まともな人間になろう</div>
+    </div>
+
+    <audio id="coinSound" src="super-mario-bros_pXHFkTA.mp3"></audio>
+    <audio id="discountSound" src="hui-shikunaino-hikakin_qy5MRfp.mp3"></audio>
+
+    <script>
+        let data = {
+            yuji: { total: 0, history: [] },
+            rinna: { total: 0, history: [] }
+        };
+
+        const targetDate = new Date('2026-07-20');
+
+        function updateUI(id) {
+            const display = document.getElementById(`amount-${id}`);
+            const total = data[id].total;
+            display.innerText = `¥${total}`;
+            
+            display.classList.remove('rainbow', 'gold');
+            if (total >= 5000) display.classList.add('gold');
+            else if (total >= 1000) display.classList.add('rainbow');
+
+            const today = new Date();
+            const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+            document.getElementById('days').innerText = diff > 0 ? diff : 0;
+        }
+
+        function addMoney(id, val) {
+            data[id].total += val;
+            const memoInput = document.getElementById(`memo-${id}`);
+            const memo = memoInput.value || "なし";
+            const time = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
+            
+            // 音声再生の分岐
+            if (val > 0) {
+                // +100円の時は音割れマリオ
+                const sound = document.getElementById('coinSound');
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("再生失敗"));
+            } else if (val < 0) {
+                // -50円の時はHIKAKIN
+                const sound = document.getElementById('discountSound');
+                sound.currentTime = 0;
+                sound.play().catch(e => console.log("再生失敗"));
+            }
+
+            const historyBox = document.getElementById(`history-${id}`);
+            const entry = document.createElement('div');
+            entry.style.borderBottom = "1px solid #222";
+            entry.innerText = `[${time}] ${val > 0 ? '+' : ''}${val}円 (${memo})`;
+            historyBox.prepend(entry);
+            
+            memoInput.value = "";
+            updateUI(id);
+        }
+
+        updateUI('yuji');
+        updateUI('rinna');
+    </script>
+</body>
+</html>
