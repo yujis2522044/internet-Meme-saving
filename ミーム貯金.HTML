@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ネットミーム貯金 - 対戦 - </title>
+    <title>ネットミーム貯金 - 対戦モード</title>
     <style>
         body { background: #121212; color: white; font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; padding: 10px; }
         .container { display: flex; flex-direction: column; gap: 20px; max-width: 600px; margin: auto; }
         .user-card { background: #1e1e1e; padding: 20px; border-radius: 20px; border: 1px solid #333; position: relative; }
         .user-name { font-size: 1.5rem; font-weight: bold; margin-bottom: 5px; color: #bbb; }
         .savings { font-size: 3.5rem; font-weight: bold; margin: 10px 0; transition: 0.3s; }
-        .rainbow { background: linear-gradient(to right, #ff2400, #e81d1d, #e8b21d, #b3e81d, #1de840, #1de8b2, #291de8, #dd1de8, #ff2400); background-size: 200% auto; -webkit-background-clip: text; color: transparent; animation: gradient 3s linear infinite; }
+        .rainbow { background: linear-gradient(to right, #ff2400, #e81d1d, #e8b21d, #b3e81d, #1de840, #1de8b2, #291de8, #dd1de8, #ff2400); background-size: 200% auto; -webkit-background-clip: text; background-clip: text; color: transparent; animation: gradient 3s linear infinite; }
         .gold { color: #ffd700; text-shadow: 0 0 10px #ffcc00, 0 0 20px #ffd700; font-style: italic; }
         @keyframes gradient { to { background-position: 200% center; } }
         .btn-group { display: flex; gap: 10px; justify-content: center; margin-bottom: 10px; }
@@ -54,12 +54,14 @@
     <audio id="discountSound" src="hui-shikunaino-hikakin_qy5MRfp.mp3"></audio>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycby1ASt88T4EJUvDLc_Lu5xASUY-YJGRcba_34EmkyqtSXnoXodabEyumeeC-WP6Sx0j_w/exec"
-        = {
+        const GAS_URL = "https://script.google.com/macros/s/AKfycbxcCs5Ko960iebOh-qwdG0nvyjh1QPMiUV8GBKWOyAPtmxb4PfH1XXEf2wk9OriBwoYvA/exec";
+        
+        let data = {
             yuji: { total: 0, history: [] },
             rinna: { total: 0, history: [] }
         };
-        const targetDate = new Date('2026-07-20');
+
+        const targetDate = new Date('2026-08-01');
 
         async function loadData() {
             try {
@@ -99,20 +101,22 @@
             document.getElementById(`history-${id}`).prepend(entry);
             
             memoInput.value = "";
-            updateUI(id);}
+            updateUI(id);
 
-// スプレッドシートへ送信（合計金額に加えて、増減額とメモも送る）
-    fetch(GAS_URL, {
-        method: "POST",
-        mode: "no-cors",
-        headers: { "Content-Type": "text/plain" },
-        body: JSON.stringify({ 
-            id: id, 
-            total: data[id].total, 
-            val: val,         // 追加
-            memo: memo        // 追加
-        })
-    });
+            // スプレッドシートへ送信
+            fetch(GAS_URL, {
+                method: "POST",
+                mode: "no-cors",
+                headers: { "Content-Type": "text/plain" },
+                body: JSON.stringify({ 
+                    id: id, 
+                    total: data[id].total, 
+                    val: val,
+                    memo: memo
+                })
+            });
+        }
+
         loadData();
     </script>
 </body>
