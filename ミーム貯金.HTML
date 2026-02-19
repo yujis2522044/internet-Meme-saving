@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ネットミーム貯金 - 対戦モード</title>
+    <title>ネットミーム貯金 - 対戦 - </title>
     <style>
         body { background: #121212; color: white; font-family: 'Helvetica Neue', Arial, sans-serif; text-align: center; padding: 10px; }
         .container { display: flex; flex-direction: column; gap: 20px; max-width: 600px; margin: auto; }
@@ -54,8 +54,8 @@
     <audio id="discountSound" src="hui-shikunaino-hikakin_qy5MRfp.mp3"></audio>
 
     <script>
-        const GAS_URL = "https://script.google.com/macros/s/AKfycbzAq2oZw507jUERC5GHjdqwjvpLz9--Numv4Wtv9_Y3cABfnn8AKF0JokrGQyXoii4lTw/exec";
-        let data = {
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby1ASt88T4EJUvDLc_Lu5xASUY-YJGRcba_34EmkyqtSXnoXodabEyumeeC-WP6Sx0j_w/exec"
+        = {
             yuji: { total: 0, history: [] },
             rinna: { total: 0, history: [] }
         };
@@ -99,16 +99,20 @@
             document.getElementById(`history-${id}`).prepend(entry);
             
             memoInput.value = "";
-            updateUI(id);
+            updateUI(id);}
 
-            // スプレッドシートへ送信
-            fetch(GAS_URL, {
-                method: "POST",
-                mode: "no-cors",
-                headers: { "Content-Type": "text/plain" },
-                body: JSON.stringify({ id: id, total: data[id].total })
-            });
-        }
+// スプレッドシートへ送信（合計金額に加えて、増減額とメモも送る）
+    fetch(GAS_URL, {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "text/plain" },
+        body: JSON.stringify({ 
+            id: id, 
+            total: data[id].total, 
+            val: val,         // 追加
+            memo: memo        // 追加
+        })
+    });
         loadData();
     </script>
 </body>
