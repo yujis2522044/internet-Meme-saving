@@ -62,58 +62,78 @@
     <audio id="discountSound" src="hui-shikunaino-hikakin_qy5MRfp.mp3"></audio>
 
     <script>
-        let data = {
-            yuji: { total: 0, history: [] },
-            rinna: { total: 0, history: [] }
-        };
+     // 1. 先ほどコピーしたURLをここに貼り付けてください
+const GAS_URL = "https://script.google.com/macros/s/AKfycbzAq2oZw507jUERC5GHjdqwjvpLz9--Numv4Wtv9_Y3cABfnn8AKF0JokrGQyXoii4lTw/exec"
+let data = {
+    yuji: { total: 0, history: [] },
+    rinna: { total: 0, history: [] }
+};
 
-        const targetDate = new Date('2026-07-20');
+const targetDate = new Date('2026-07-20');
 
-        function updateUI(id) {
-            const display = document.getElementById(`amount-${id}`);
-            const total = data[id].total;
-            display.innerText = `¥${total}`;
-            
-            display.classList.remove('rainbow', 'gold');
-            if (total >= 5000) display.classList.add('gold');
-            else if (total >= 1000) display.classList.add('rainbow');
-
-            const today = new Date();
-            const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
-            document.getElementById('days').innerText = diff > 0 ? diff : 0;
-        }
-
-        function addMoney(id, val) {
-            data[id].total += val;
-            const memoInput = document.getElementById(`memo-${id}`);
-            const memo = memoInput.value || "なし";
-            const time = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
-            
-            // 音声再生の分岐
-            if (val > 0) {
-                // +100円の時は音割れマリオ
-                const sound = document.getElementById('coinSound');
-                sound.currentTime = 0;
-                sound.play().catch(e => console.log("再生失敗"));
-            } else if (val < 0) {
-                // -50円の時はHIKAKIN
-                const sound = document.getElementById('discountSound');
-                sound.currentTime = 0;
-                sound.play().catch(e => console.log("再生失敗"));
-            }
-
-            const historyBox = document.getElementById(`history-${id}`);
-            const entry = document.createElement('div');
-            entry.style.borderBottom = "1px solid #222";
-            entry.innerText = `[${time}] ${val > 0 ? '+' : ''}${val}円 (${memo})`;
-            historyBox.prepend(entry);
-            
-            memoInput.value = "";
-            updateUI(id);
-        }
-
+// 2. ページを開いた時にスプレッドシートからデータを読み込む関数
+async function loadData() {
+    try {
+        const response = await fetch(GAS_URL);
+        const json = await response.json();
+        data.yuji.total = json.yuji;
+        data.rinna.total = json.rinna;
         updateUI('yuji');
         updateUI('rinna');
+    } catch (e) {
+        console.error("データの読み込みに失敗しました", e);
+    }
+}
+
+function updateUI(id) {
+    const display = document.getElementById(`amount-${id}`);
+    const total = data[id].total;
+    display.innerText = `¥${total}`;
+    
+    display.classList.remove('rainbow', 'gold');
+    if (total >= 5000) display.classList.add('gold');
+    else if (total >= 1000) display.classList.add('rainbow');
+
+    const today = new Date();
+    const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+    document.getElementById('days').innerText = diff > 0 ? diff : 0;
+}
+
+// 3. ボタンを押した時にスプレッドシートへ送信する処理を追加したaddMoney
+async function addMoney(id, val) {
+    data[id].total += val;
+    const memoInput = document.getElementById(`memo-${id}`);
+    const memo = memoInput.value || "なし";
+    const time = new Date().toLocaleTimeString('ja-JP', {hour: '2-digit', minute:'2-digit'});
+    
+    if (val > 0) {
+        const sound = document.getElementById('coinSound');
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("再生失敗"));
+    } else if (val < 0) {
+        const sound = document.getElementById('discountSound');
+        sound.currentTime = 0;
+        sound.play().catch(e => console.log("再生失敗"));
+    }
+
+    const historyBox = document.getElementById(`history-${id}`);
+    const entry = document.createElement('div');
+    entry.style.borderBottom = "1px solid #222";
+    entry.innerText = `[${time}] ${val > 0 ? '+' : ''}${val}円 (${memo})`;
+    historyBox.prepend(entry);
+    
+    memoInput.value = "";
+    updateUI(id);
+
+    // スプレッドシートにデータを保存
+    await fetch(GAS_URL, {
+        method: "POST",
+        body: JSON.stringify({ id: id, total: data[id].total })
+    });
+}
+
+// 最初にデータを読み込む
+loadData();
     </script>
 </body>
 </html>
